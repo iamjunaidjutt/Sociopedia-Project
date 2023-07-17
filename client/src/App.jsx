@@ -1,5 +1,25 @@
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Login from "scenes/Login";
+import Home from "scenes/Home";
+import Profile from "scenes/Profile";
+
+const router = createBrowserRouter([
+	{
+		path: "/",
+		children: [
+			{ index: true, element: <Login /> },
+			{ path: "home", element: <Home /> },
+			{ path: "profile/:userId", element: <Profile /> },
+		],
+	},
+]);
+
 function App() {
-	return <div className="app"></div>;
+	return (
+		<RouterProvider router={router}>
+			<div className="app"></div>
+		</RouterProvider>
+	);
 }
 
 export default App;
