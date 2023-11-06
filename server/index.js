@@ -26,15 +26,28 @@ app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("common"));
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
-app.use(cors());
+
+const whitelist = ["http://localhost:5173"];
+
+const corsOptions = {
+	origin: (origin, callback) => {
+		if (whitelist.includes(origin)) {
+			callback(null, true);
+		} else {
+			callback(new Error("Not allowed by CORS"));
+		}
+	},
+};
+
+app.use(cors(corsOptions));
 app.use("/assets", express.static(path.join(__dirname, "public/assets")));
 
 // File Storage
 const storage = multer.diskStorage({
-	destination: (req, res, cb) => {
+	destination: (req, file, cb) => {
 		cb(null, "public/assets");
 	},
-	filename: (req, res, cb) => {
+	filename: (req, file, cb) => {
 		cb(null, file.originalname);
 	},
 });
@@ -49,8 +62,14 @@ app.use("/auth", authRoutes);
 app.use("/users", usersRoutes);
 app.use("/posts", postsRoutes);
 
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+	console.error(err);
+	res.status(500).json({ error: "Internal Server Error" });
+});
+
 // Mongoose Setup
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 mongoose
 	.connect(process.env.MONGO_URI, {
 		useNewUrlParser: true,
